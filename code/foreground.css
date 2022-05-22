@@ -1,0 +1,85 @@
+.text_dark {
+	color: white;
+}
+
+.text_light {
+	color: black;
+}
+
+.sidebar_item_inactive {
+	font-weight: 400;
+}
+
+.sidebar_item_inactive_dark {
+	background: #212121;
+}
+
+.sidebar_item_inactive_dark:hover {
+	background: #383838;
+}
+
+.sidebar_item_inactive_light {
+	background: white;
+}
+
+.sidebar_item_inactive_light:hover {
+	background: #f2f2f2;
+}
+
+.sidebar_item_active {
+	font-weight: 500;
+}
+
+.sidebar_item_active_dark {
+	background: #383838;
+}
+
+.sidebar_item_active_dark:hover {
+	background: #4f4f4f;
+}
+
+.sidebar_item_active_light {
+	background: #f2f2f2;
+}
+
+.sidebar_item_active_light:hover {
+	background: #bfbfbf;
+}
+
+.sidebar_item_icon {
+	padding: 0 0.85em;
+}
+
+.star {
+	font-size: 2.8rem;
+	line-height: 1;
+}
+
+.btn_dark {
+	background: #181818;
+}
+
+.btn_light {
+	background: #f9f9f9;
+}
+
+.d_none {
+	display: none;
+}
+
+#sidebar_favorites {
+	font-family: "Roboto", "Arial", sans-serif;
+	font-size: 1.4rem;
+	padding: 0.4em 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
+
+#star_btn {
+	height: 0.835em;
+	padding: 0.3em;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+}
