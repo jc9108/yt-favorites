@@ -2,13 +2,13 @@ console.log("popup");
 
 let favorites = null;
 
-const view_favorites_btn = document.getElementById("view_favorites_btn");
-const hide_favorites_btn = document.getElementById("hide_favorites_btn");
-const favorites_list = document.getElementById("favorites_list");
-const clear_favorites_btn = document.getElementById("clear_favorites_btn");
-const cancel_confirm_btns_wrapper = document.getElementById("cancel_confirm_btns_wrapper");
-const cancel_btn = document.getElementById("cancel_btn");
-const confirm_btn = document.getElementById("confirm_btn");
+const view_favorites_btn = document.querySelector("#view_favorites_btn");
+const hide_favorites_btn = document.querySelector("#hide_favorites_btn");
+const favorites_list = document.querySelector("#favorites_list");
+const clear_favorites_btn = document.querySelector("#clear_favorites_btn");
+const cancel_confirm_btns_wrapper = document.querySelector("#cancel_confirm_btns_wrapper");
+const cancel_btn = document.querySelector("#cancel_btn");
+const confirm_btn = document.querySelector("#confirm_btn");
 
 function refresh_favorites_list() {
 	favorites_list.innerHTML = "";

@@ -8,7 +8,7 @@ let [
 let click_again = true;
 
 const favorites_url = "https://www.youtube.com/feed/favorites";
-const theme = (document.getElementsByTagName("html")[0].getAttribute("dark") == "true" ? "dark" : "light");
+const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "dark" : "light");
 console.log(theme); // REMOVE later. might need to get theme at a later point in runtime bc sometimes it isnt loaded yet upon getting it here
 
 const url_mo = new MutationObserver((mutations) => {
@@ -76,61 +76,44 @@ const sidebar_mo = new MutationObserver((mutations) => {
 });
 
 const watch_mo = new MutationObserver((mutations) => {
-	const meta = document.getElementById("meta");
-
-	let sub_btn = null;
-	try {
-		sub_btn = meta.children[1].children[0].children[0].children[0].children[1].children[0].children[0];
-	} catch (err) {
-		null;
-	}
-
+	const sub_btn = document.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
 	if (sub_btn) {
 		watch_mo.disconnect();
 		remove_star_btn();
 
 		if (sub_btn.hasAttribute("subscribed")) {
-			const channel_name = meta.children[1].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].innerHTML;
+			const channel_name = document.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a").innerHTML;
 			add_star_btn(channel_name, sub_btn);
 		}
 
-		sub_btn.id = "sub_btn";
+		sub_btn.id = "sub_btn"; // REMOVE ?
 	}
 });
 
 const channel_mo = new MutationObserver((mutations) => {
-	const channel_header = document.getElementById("channel-header");
-
-	let sub_btn = null;
-	try {
-		sub_btn = channel_header.children[0].children[2].children[1].children[4].children[0].children[0];
-	} catch (err) {
-		null;
-	}
-
+	const sub_btn = document.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
 	if (sub_btn) {
 		channel_mo.disconnect();
 		remove_star_btn();
 
 		if (sub_btn.hasAttribute("subscribed")) {
-			const channel_name = channel_header.children[0].children[2].children[0].children[0].children[0].children[0].children[0].innerHTML;
+			const channel_name = document.querySelector("#meta > #channel-name > #container > #text-container > #text").innerHTML;
 			add_star_btn(channel_name, sub_btn);
 		}
 
-		sub_btn.id = "sub_btn";
+		sub_btn.id = "sub_btn"; // REMOVE ?
 	}
 });
 
 const debounced_apply_d_none_to_feed_items = create_debounced_function(() => {
-	const item_sections = document.querySelector('ytd-browse[role="main"] > * > #primary > ytd-section-list-renderer > #contents');
-	if (item_sections) {
-		for (const section of item_sections.children) {
-			const items = section.querySelector("#items");
-			if (items) {
-				for (const item of items.children) {
-					const channel_name = item.querySelector("a.yt-simple-endpoint.yt-formatted-string").innerHTML;
-					(favorites.has(channel_name) ? item.style.removeProperty("display") : item.style.setProperty("display", "none", "important"));
-				}
+	const contents = document.querySelector('ytd-browse > [page-subtype="subscriptions"] > #primary > ytd-section-list-renderer > #contents');
+	if (contents) {
+		const item_sections = [...contents.children].slice(0, -1);
+		for (const section of item_sections) {
+			const items = section.querySelector("#items").children;
+			for (const item of items) {
+				const channel_name = item.querySelector("#meta > #metadata-container > #metadata > #byline-container > #channel-name > #container > #text-container > #text > a").innerHTML;
+				(favorites.has(channel_name) ? item.style.removeProperty("display") : item.style.setProperty("display", "none", "important"));
 			}
 		}
 	}
