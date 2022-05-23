@@ -35,19 +35,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 	}
 });
 
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-	const favorites_url = "https://www.youtube.com/feed/favorites";
-	if (details.frameId == 0 && (details.url == favorites_url || details.url == favorites_url+"/")) {
-		try {
-			chrome.tabs.update(details.tabId, {
-				url: "https://www.youtube.com/feed/subscriptions#favorites" // using # bc yt removes invalid ? on navigation
-			}).catch((err) => console.error(err));
-		} catch (err) {
-			console.error(err);
-		}
-	}
-});
-
 chrome.webNavigation.onCompleted.addListener((details) => {
 	handle_navigation(details);
 });

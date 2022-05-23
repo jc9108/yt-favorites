@@ -1,6 +1,6 @@
 # [yt-favorites]()
 
-star subscribed channels to keep track of your favorites. enables a custom video feed at https://www.youtube.com/feed/favorites which only contains videos from favorited channels
+star subscribed channels to keep track of your favorites. enables filtering of the [subscriptions feed](https://www.youtube.com/feed/subscriptions) to only show videos from favorited channels
 
 <br/>
 

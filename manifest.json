@@ -1,7 +1,7 @@
 {
 	"author": "jc9108",
 	"name": "yt-favorites",
-	"description": "star subscribed channels to keep track of your favorites. enables a custom video feed at https://www.youtube.com/feed/favorites which only contains videos from favorited channels",
+	"description": "star subscribed channels to keep track of your favorites. enables filtering of the subscriptions feed to only show videos from favorited channels",
 	"homepage_url": "https://github.com/jc9108/yt-favorites",
 	"version": "1.0.0",
 	"manifest_version": 3,
