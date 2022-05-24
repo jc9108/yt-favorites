@@ -12,28 +12,32 @@ const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "
 const debounce_timeout = 50; // ms
 
 const watch_mo = new MutationObserver((mutations) => {
-	const sub_btn = document.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-	if (sub_btn) {
-		watch_mo.disconnect();
-		remove_star_btn();
-
-		if (sub_btn.hasAttribute("subscribed")) {
-			const channel_name = document.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a").innerHTML;
-			add_star_btn(channel_name, sub_btn);
-		}
+	const watch_page = document.querySelector('ytd-page-manager > ytd-watch-flexy[role="main"][video-id]');
+	if (watch_page) {
+		const sub_btn = watch_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+		const element = watch_page.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a");
+		if (sub_btn && element) {
+			watch_mo.disconnect();
+			remove_star_btn();
+	
+			const channel_name = element.innerHTML;
+			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+		}	
 	}
 });
 
 const channel_mo = new MutationObserver((mutations) => {
-	const sub_btn = document.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-	if (sub_btn) {
-		channel_mo.disconnect();
-		remove_star_btn();
-
-		if (sub_btn.hasAttribute("subscribed")) {
-			const channel_name = document.querySelector("#meta > #channel-name > #container > #text-container > #text").innerHTML;
-			add_star_btn(channel_name, sub_btn);
-		}
+	const channel_page = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="channels"]');
+	if (channel_page) {
+		const sub_btn = channel_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+		const element = channel_page.querySelector("#meta > #channel-name > #container > #text-container > #text");
+		if (sub_btn && element) {
+			channel_mo.disconnect();
+			remove_star_btn();
+	
+			const channel_name = element.innerHTML;
+			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+		}	
 	}
 });
 
@@ -58,7 +62,7 @@ const manage_contents_mo = new MutationObserver((mutations) => {
 });
 
 const manage_mo = new MutationObserver((mutations) => {
-	manage_contents = document.querySelector("ytd-browse > * > #primary > ytd-section-list-renderer > #contents");
+	manage_contents = document.querySelector('ytd-page-manager > ytd-browse[role="main"]:not([page-subtype]) > * > #primary > ytd-section-list-renderer > #contents');
 	if (manage_contents) {
 		manage_mo.disconnect();
 		manage_contents_mo.observe(manage_contents, {
@@ -71,7 +75,7 @@ const manage_mo = new MutationObserver((mutations) => {
 
 const debounced_modify_feed_contents = create_debounced_function(() => {
 	feed_layout = (feed_contents.querySelector("#description-text") ? "list" : "grid");
-	console.log(feed_layout);
+	// console.log(feed_layout);
 	switch (feed_layout) {
 		case "grid":
 			const sections = [...feed_contents.children].slice(0, -1);
@@ -99,7 +103,7 @@ const feed_contents_mo = new MutationObserver((mutations) => {
 });
 
 const feed_mo = new MutationObserver((mutations) => {
-	feed_contents = document.querySelector("ytd-browse > * > #primary > ytd-section-list-renderer > #contents");
+	feed_contents = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="subscriptions"] > * > #primary > ytd-section-list-renderer > #contents');
 	if (feed_contents) {
 		feed_mo.disconnect();
 		(!document.querySelector("#filter_btn") ? add_filter_btn() : null);
