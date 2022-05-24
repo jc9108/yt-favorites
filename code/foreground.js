@@ -127,8 +127,12 @@ function force_mo_activation(element) {
 	const _ = create_element_from_html_string(`
 		<div class="d_none"></div>
 	`);
-	element.append(_);
-	_.remove();
+	try {
+		element.append(_);
+		_.remove();
+	} catch (err) {
+		(err.message == "Failed to execute 'append' on 'Document': Only one element on document allowed." ? null : console.error(err));
+	}
 }
 
 async function add_favorite(channel_name) {
