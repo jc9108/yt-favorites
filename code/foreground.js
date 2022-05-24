@@ -2,7 +2,8 @@ console.log("foreground");
 
 let [
 	favorites,
-	contents,
+	manage_contents,
+	feed_contents,
 	filter_btn_state
 ] = [];
 
@@ -35,26 +36,58 @@ const channel_mo = new MutationObserver((mutations) => {
 	}
 });
 
-const feed_mo = new MutationObserver((mutations) => {
-	contents = document.querySelector('ytd-browse > * > #primary > ytd-section-list-renderer > #contents');
-	if (contents) {
-		feed_mo.disconnect();
-		add_filter_btn();
-	}
-});
+const debounced_modify_manage_contents = create_debounced_function(() => {
+	const sections = [...manage_contents.children].slice(0, -1);
+	for (const section of sections) {
+		const channel_containers = section.querySelector("#grid-container").children;
+		for (const channel_container of channel_containers) {
+			const channel = channel_container.querySelector("#content-section");
+			const info_section = channel.querySelector("#info-section");
 
-const debounced_modify_contents = create_debounced_function(() => {
-	const item_sections = [...contents.children].slice(0, -1);
-	for (const section of item_sections) {
-		const items = section.querySelector("#items").children;
-		for (const item of items) {
-			const channel_name = item.querySelector("#meta > #metadata-container > #metadata > #byline-container > #channel-name > #container > #text-container > #text > a").innerHTML;
-			(favorites.has(channel_name) ? item.style.removeProperty("display") : item.style.setProperty("display", "none", "important"));
+			const channel_name = info_section.querySelector("#main-link > #info > #channel-title > #container > #text-container > #text").innerHTML;
+			const sub_btn = info_section.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+			
+			const star_btn = info_section.querySelector(".star_btn");
+			(!star_btn ? add_star_btn(channel_name, sub_btn) : null);
 		}
 	}
 }, debounce_timeout);
-const contents_mo = new MutationObserver((mutations) => {
-	debounced_modify_contents();
+const manage_contents_mo = new MutationObserver((mutations) => {
+	debounced_modify_manage_contents();
+});
+
+const manage_mo = new MutationObserver((mutations) => {
+	manage_contents = document.querySelector("ytd-browse > * > #primary > ytd-section-list-renderer > #contents");
+	if (manage_contents) {
+		manage_mo.disconnect();
+		manage_contents_mo.observe(manage_contents, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	}
+});
+
+const debounced_modify_feed_contents = create_debounced_function(() => {
+	const sections = [...feed_contents.children].slice(0, -1);
+	for (const section of sections) {
+		const videos = section.querySelector("#items").children;
+		for (const video of videos) {
+			const channel_name = video.querySelector("#meta > #metadata-container > #metadata > #byline-container > #channel-name > #container > #text-container > #text > a").innerHTML;
+			(favorites.has(channel_name) ? video.style.removeProperty("display") : video.style.setProperty("display", "none", "important"));
+		}
+	}
+}, debounce_timeout);
+const feed_contents_mo = new MutationObserver((mutations) => {
+	debounced_modify_feed_contents();
+});
+
+const feed_mo = new MutationObserver((mutations) => {
+	feed_contents = document.querySelector("ytd-browse > * > #primary > ytd-section-list-renderer > #contents");
+	if (feed_contents) {
+		feed_mo.disconnect();
+		add_filter_btn();
+	}
 });
 
 function create_element_from_html_string(html_string) {
@@ -82,46 +115,6 @@ function force_mo_activation(element) {
 	_.remove();
 }
 
-function add_star_btn(channel_name, sub_btn) {
-	const star_btn = create_element_from_html_string(`
-		<button id="star_btn" class="${"btn_" + theme}" type="button">${(favorites.has(channel_name) ? "★" : "☆")}</button>
-	`);
-
-	star_btn.addEventListener("click", async (evt) => {
-		(evt.target.innerHTML == "☆" ? evt.target.innerHTML = "★" : evt.target.innerHTML = "☆");
-
-		try {
-			(favorites.has(channel_name) ? await remove_favorite(channel_name) : await add_favorite(channel_name));
-		} catch (err) {
-			console.error(err);
-		}
-	});
-
-	sub_btn.after(star_btn);
-}
-
-function remove_star_btn() {
-	const star_btn = document.getElementById("star_btn");
-	(star_btn ? star_btn.remove() : null);
-}
-
-function refresh_star_btn() {
-	if (location.href.startsWith("https://www.youtube.com/watch?")) {
-		watch_mo.observe(document, {
-			attributes: true,
-			childList: true,
-			subtree: true
-		});
-	} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
-		channel_mo.observe(document, {
-			attributes: true,
-			childList: true,
-			subtree: true
-		});
-	}
-	force_mo_activation(document);
-}
-
 async function add_favorite(channel_name) {
 	favorites.add(channel_name);
 	
@@ -146,6 +139,61 @@ async function remove_favorite(channel_name) {
 	}).catch((err) => null);
 }
 
+function add_star_btn(channel_name, sub_btn) {
+	const star_btn = create_element_from_html_string(`
+		<button class="star_btn ${"btn_" + theme}" type="button">${(favorites.has(channel_name) ? "★" : "☆")}</button>
+	`);
+
+	star_btn.addEventListener("click", async (evt) => {
+		(evt.target.innerHTML == "☆" ? evt.target.innerHTML = "★" : evt.target.innerHTML = "☆");
+
+		try {
+			(favorites.has(channel_name) ? await remove_favorite(channel_name) : await add_favorite(channel_name));
+		} catch (err) {
+			console.error(err);
+		}
+	});
+
+	sub_btn.after(star_btn);
+}
+
+function remove_star_btn(multiple=false) {
+	if (multiple) {
+		const star_btns = document.querySelectorAll(".star_btn");
+		for (const star_btn of star_btns) {
+			star_btn.remove();
+		}
+	} else {
+		const star_btn = document.querySelector(".star_btn");
+		(star_btn ? star_btn.remove() : null);
+	}
+}
+
+function refresh_star_btn() {
+	if (location.href.startsWith("https://www.youtube.com/watch?")) {
+		watch_mo.observe(document, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
+		channel_mo.observe(document, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	} else if (location.href == "https://www.youtube.com/feed/channels") {
+		remove_star_btn(multiple=true);
+
+		manage_mo.observe(document, {
+			attributes: true,
+			childList: true,
+			subtree: true
+		});
+	}
+	force_mo_activation(document);
+}
+
 function add_filter_btn() {
 	const filter_btn = create_element_from_html_string(`
 		<button id="filter_btn" class="${"btn_" + theme}" type="button">★ ${filter_btn_state = "FILTER"} ★</button>
@@ -157,22 +205,21 @@ function add_filter_btn() {
 				filter_btn_state = "UNFILTER";
 				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
 				
-				contents_mo.observe(contents, {
+				feed_contents_mo.observe(feed_contents, {
 					attributes: true,
 					childList: true,
 					subtree: true
 				});
-				force_mo_activation(contents);
+				force_mo_activation(feed_contents);
 
 				break;
 			case "UNFILTER":
 				filter_btn_state = "FILTER";
 				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
 
-				contents_mo.disconnect();
-				
+				feed_contents_mo.disconnect();
 				setTimeout(() => {
-					const item_sections = [...contents.children].slice(0, -1);
+					const item_sections = [...feed_contents.children].slice(0, -1);
 					for (const section of item_sections) {
 						const items = section.querySelector("#items").children;
 						for (const item of items) {
@@ -187,7 +234,7 @@ function add_filter_btn() {
 		}
 	});
 
-	contents.querySelector("#title-container > #spacer").after(filter_btn);
+	feed_contents.querySelector("#title-container > #spacer").after(filter_btn);
 }
 
 chrome.storage.sync.get(null, (items) => {
@@ -199,10 +246,8 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 	console.log(msg);
 	switch (msg.subject) {
 		case "navigation":
-			watch_mo.disconnect();
-			channel_mo.disconnect();
-			feed_mo.disconnect();
-			contents_mo.disconnect();
+			manage_contents_mo.disconnect();
+			feed_contents_mo.disconnect();
 
 			if (location.href.startsWith("https://www.youtube.com/watch?")) {
 				console.log("watch");
@@ -216,6 +261,14 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 				console.log("channel");
 
 				channel_mo.observe(document, {
+					attributes: true,
+					childList: true,
+					subtree: true
+				});
+			} else if (location.href == "https://www.youtube.com/feed/channels") {
+				console.log("manage");
+
+				manage_mo.observe(document, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -236,10 +289,10 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 				const synced_storage = await chrome.storage.sync.get(null);
 				favorites = new Set(Object.keys(synced_storage));
 				
-				if (document.getElementById("star_btn")) {
+				if (document.querySelector(".star_btn")) {
 					refresh_star_btn();
 				} else if (location.href == "https://www.youtube.com/feed/subscriptions") {
-					force_mo_activation(contents);
+					force_mo_activation(feed_contents);
 				}
 			} catch (err) {
 				console.error(err);
