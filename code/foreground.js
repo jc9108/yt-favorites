@@ -3,6 +3,7 @@ console.log("foreground");
 let [
 	favorites,
 	manage_contents,
+	feed_layout,
 	feed_contents,
 	filter_btn_state
 ] = [];
@@ -69,13 +70,28 @@ const manage_mo = new MutationObserver((mutations) => {
 });
 
 const debounced_modify_feed_contents = create_debounced_function(() => {
-	const sections = [...feed_contents.children].slice(0, -1);
-	for (const section of sections) {
-		const videos = section.querySelector("#items").children;
-		for (const video of videos) {
-			const channel_name = video.querySelector("#meta > #metadata-container > #metadata > #byline-container > #channel-name > #container > #text-container > #text > a").innerHTML;
-			(favorites.has(channel_name) ? video.style.removeProperty("display") : video.style.setProperty("display", "none", "important"));
-		}
+	feed_layout = (feed_contents.querySelector("#description-text") ? "list" : "grid");
+	console.log(feed_layout);
+	switch (feed_layout) {
+		case "grid":
+			const sections = [...feed_contents.children].slice(0, -1);
+			for (const section of sections) {
+				const videos = section.querySelector("#items").children;
+				for (const video of videos) {
+					const channel_name = video.querySelector("#meta > #metadata-container > #metadata > #byline-container > #channel-name > #container > #text-container > #text > a").innerHTML;
+					(favorites.has(channel_name) ? video.style.removeProperty("display") : video.style.setProperty("display", "none", "important"));
+				}
+			}
+			break;
+		case "list":
+			const videos = [...feed_contents.children].slice(0, -1);
+			for (const video of videos) {
+				const channel_name = video.querySelector("#title-container > h2 > #image-container > #title-text > a > #title").innerHTML;
+				(favorites.has(channel_name) ? video.style.removeProperty("display") : video.style.setProperty("display", "none", "important"));
+			}
+			break;
+		default:
+			break;
 	}
 }, debounce_timeout);
 const feed_contents_mo = new MutationObserver((mutations) => {
@@ -86,7 +102,7 @@ const feed_mo = new MutationObserver((mutations) => {
 	feed_contents = document.querySelector("ytd-browse > * > #primary > ytd-section-list-renderer > #contents");
 	if (feed_contents) {
 		feed_mo.disconnect();
-		add_filter_btn();
+		(!document.querySelector("#filter_btn") ? add_filter_btn() : null);
 	}
 });
 
@@ -171,13 +187,13 @@ function remove_star_btn(multiple=false) {
 
 function refresh_star_btn() {
 	if (location.href.startsWith("https://www.youtube.com/watch?")) {
-		watch_mo.observe(document, {
+		watch_mo.observe(document.body, {
 			attributes: true,
 			childList: true,
 			subtree: true
 		});
 	} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
-		channel_mo.observe(document, {
+		channel_mo.observe(document.body, {
 			attributes: true,
 			childList: true,
 			subtree: true
@@ -185,7 +201,7 @@ function refresh_star_btn() {
 	} else if (location.href == "https://www.youtube.com/feed/channels") {
 		remove_star_btn(multiple=true);
 
-		manage_mo.observe(document, {
+		manage_mo.observe(document.body, {
 			attributes: true,
 			childList: true,
 			subtree: true
@@ -219,12 +235,24 @@ function add_filter_btn() {
 
 				feed_contents_mo.disconnect();
 				setTimeout(() => {
-					const item_sections = [...feed_contents.children].slice(0, -1);
-					for (const section of item_sections) {
-						const items = section.querySelector("#items").children;
-						for (const item of items) {
-							item.style.removeProperty("display");
-						}
+					switch (feed_layout) {
+						case "grid":
+							const sections = [...feed_contents.children].slice(0, -1);
+							for (const section of sections) {
+								const videos = section.querySelector("#items").children;
+								for (const video of videos) {
+									video.style.removeProperty("display");
+								}
+							}
+							break;
+						case "list":
+							const videos = [...feed_contents.children].slice(0, -1);
+							for (const video of videos) {
+								video.style.removeProperty("display");
+							}
+							break;
+						default:
+							break;
 					}
 				}, debounce_timeout + 50);
 
@@ -252,7 +280,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			if (location.href.startsWith("https://www.youtube.com/watch?")) {
 				console.log("watch");
 
-				watch_mo.observe(document, {
+				watch_mo.observe(document.body, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -260,7 +288,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
 				console.log("channel");
 
-				channel_mo.observe(document, {
+				channel_mo.observe(document.body, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -268,15 +296,15 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			} else if (location.href == "https://www.youtube.com/feed/channels") {
 				console.log("manage");
 
-				manage_mo.observe(document, {
+				manage_mo.observe(document.body, {
 					attributes: true,
 					childList: true,
 					subtree: true
 				});
-			} else if (location.href == "https://www.youtube.com/feed/subscriptions") {
+			} else if (location.href.startsWith("https://www.youtube.com/feed/subscriptions")) {
 				console.log("feed");
 
-				feed_mo.observe(document, {
+				feed_mo.observe(document.body, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -291,7 +319,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 				
 				if (document.querySelector(".star_btn")) {
 					refresh_star_btn();
-				} else if (location.href == "https://www.youtube.com/feed/subscriptions") {
+				} else if (location.href.startsWith("https://www.youtube.com/feed/subscriptions")) {
 					force_mo_activation(feed_contents);
 				}
 			} catch (err) {
