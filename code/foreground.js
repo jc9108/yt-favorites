@@ -5,7 +5,7 @@ let [
 	manage_contents,
 	feed_layout,
 	feed_contents,
-	filter_btn_state
+	filter_state
 ] = [];
 
 const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "dark" : "light");
@@ -42,7 +42,7 @@ const channel_mo = new MutationObserver((mutations) => {
 });
 
 const debounced_modify_manage_contents = create_debounced_function(() => {
-	const sections = [...manage_contents.children].slice(0, -1);
+	const sections = [...(manage_contents.children)].slice(0, -1);
 	for (const section of sections) {
 		const channel_containers = section.querySelector("#grid-container").children;
 		for (const channel_container of channel_containers) {
@@ -78,7 +78,7 @@ const debounced_modify_feed_contents = create_debounced_function(() => {
 	// console.log(feed_layout);
 	switch (feed_layout) {
 		case "grid":
-			const sections = [...feed_contents.children].slice(0, -1);
+			const sections = [...(feed_contents.children)].slice(0, -1);
 			for (const section of sections) {
 				const videos = section.querySelector("#items").children;
 				for (const video of videos) {
@@ -88,7 +88,7 @@ const debounced_modify_feed_contents = create_debounced_function(() => {
 			}
 			break;
 		case "list":
-			const videos = [...feed_contents.children].slice(0, -1);
+			const videos = [...(feed_contents.children)].slice(0, -1);
 			for (const video of videos) {
 				const channel_name = video.querySelector("#title-container > h2 > #image-container > #title-text > a > #title").innerHTML;
 				(favorites.has(channel_name) ? video.style.removeProperty("display") : video.style.setProperty("display", "none", "important"));
@@ -220,14 +220,14 @@ function refresh_star_btn() {
 
 function add_filter_btn() {
 	const filter_btn = create_element_from_html_string(`
-		<button id="filter_btn" class="${"btn_" + theme}" type="button">★ ${filter_btn_state = "FILTER"} ★</button>
+		<button id="filter_btn" class="${"btn_" + theme}" type="button">★ ${filter_state = "FILTER"} ★</button>
 	`);
 
 	filter_btn.addEventListener("click", (evt) => {
-		switch (filter_btn_state) {
+		switch (filter_state) {
 			case "FILTER":
-				filter_btn_state = "UNFILTER";
-				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
+				filter_state = "UNFILTER";
+				evt.target.innerHTML = `★ ${filter_state} ★`;
 				
 				feed_contents_mo.observe(feed_contents, {
 					attributes: true,
@@ -238,14 +238,14 @@ function add_filter_btn() {
 
 				break;
 			case "UNFILTER":
-				filter_btn_state = "FILTER";
-				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
+				filter_state = "FILTER";
+				evt.target.innerHTML = `★ ${filter_state} ★`;
 
 				feed_contents_mo.disconnect();
 				setTimeout(() => {
 					switch (feed_layout) {
 						case "grid":
-							const sections = [...feed_contents.children].slice(0, -1);
+							const sections = [...(feed_contents.children)].slice(0, -1);
 							for (const section of sections) {
 								const videos = section.querySelector("#items").children;
 								for (const video of videos) {
@@ -254,7 +254,7 @@ function add_filter_btn() {
 							}
 							break;
 						case "list":
-							const videos = [...feed_contents.children].slice(0, -1);
+							const videos = [...(feed_contents.children)].slice(0, -1);
 							for (const video of videos) {
 								video.style.removeProperty("display");
 							}
