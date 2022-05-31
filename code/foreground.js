@@ -5,7 +5,7 @@ let [
 	manage_contents,
 	feed_layout,
 	feed_contents,
-	filter_state
+	filter_btn_state
 ] = [];
 
 const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "dark" : "light");
@@ -220,14 +220,14 @@ function refresh_star_btn() {
 
 function add_filter_btn() {
 	const filter_btn = create_element_from_html_string(`
-		<button id="filter_btn" class="${"btn_" + theme}" type="button">★ ${filter_state = "FILTER"} ★</button>
+		<button id="filter_btn" class="${"btn_" + theme}" type="button">★ ${filter_btn_state = "FILTER"} ★</button>
 	`);
 
 	filter_btn.addEventListener("click", (evt) => {
-		switch (filter_state) {
+		switch (filter_btn_state) {
 			case "FILTER":
-				filter_state = "UNFILTER";
-				evt.target.innerHTML = `★ ${filter_state} ★`;
+				filter_btn_state = "UNFILTER";
+				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
 				
 				feed_contents_mo.observe(feed_contents, {
 					attributes: true,
@@ -238,8 +238,8 @@ function add_filter_btn() {
 
 				break;
 			case "UNFILTER":
-				filter_state = "FILTER";
-				evt.target.innerHTML = `★ ${filter_state} ★`;
+				filter_btn_state = "FILTER";
+				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
 
 				feed_contents_mo.disconnect();
 				setTimeout(() => {
