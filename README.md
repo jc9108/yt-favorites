@@ -1,4 +1,4 @@
-# [yt-favorites]()
+# [yt-favorites](https://chrome.google.com/webstore/detail/yt-favorites/ifcphlpmanooadagnlmafmhgjklffkih)
 
 star subscribed channels to keep track of your favorites. enables filtering of the [subscriptions feed](https://www.youtube.com/feed/subscriptions) to only show videos from favorited channels
 
