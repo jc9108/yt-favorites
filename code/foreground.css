@@ -4,17 +4,20 @@
 
 .btn_dark {
 	background: #181818;
+	border: none;
 	color: white;
 }
 
 .btn_light {
 	background: #f9f9f9;
+	border: none;
 	color: black;
 }
 
 .star_btn {
 	font-size: 2.8rem;
 	line-height: 1;
+	width: 1.43em;
 	margin: 0 0 0 0.175em;
 	cursor: pointer;
 }
