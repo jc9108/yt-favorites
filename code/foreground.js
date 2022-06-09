@@ -346,7 +346,7 @@ window.addEventListener("click", (evt) => {
 		}, 50);
 
 		window.addEventListener("click", (evt) => {
-			(evt.target.innerHTML == "Unsubscribe" ? remove_star_btn() : null);
+			(evt.target.closest("#confirm-button") ? remove_star_btn() : null);
 		}, {
 			once: true
 		});
