@@ -12,32 +12,36 @@ const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "
 const debounce_timeout = 50; // ms
 
 const watch_mo = new MutationObserver((mutations) => {
-	const watch_page = document.querySelector('ytd-page-manager > ytd-watch-flexy[role="main"][video-id]');
-	if (watch_page) {
-		const sub_btn = watch_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-		const element = watch_page.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a");
-		if (sub_btn && element) {
-			watch_mo.disconnect();
-			remove_star_btn();
-	
-			const channel_name = element.innerHTML;
-			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+	if (yt_page_load_check() == null || yt_page_load_check() == 100) {
+		const watch_page = document.querySelector('ytd-page-manager > ytd-watch-flexy[role="main"][video-id]');
+		if (watch_page) {
+			const sub_btn = watch_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+			const element = watch_page.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a");
+			if (sub_btn && element) {
+				watch_mo.disconnect();
+				remove_star_btn();
+		
+				const channel_name = element.innerHTML;
+				(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+			}
 		}	
 	}
 });
 
 const channel_mo = new MutationObserver((mutations) => {
-	const channel_page = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="channels"]');
-	if (channel_page) {
-		const sub_btn = channel_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-		const element = channel_page.querySelector("#meta > #channel-name > #container > #text-container > #text");
-		if (sub_btn && element) {
-			channel_mo.disconnect();
-			remove_star_btn();
-	
-			const channel_name = element.innerHTML;
-			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
-		}	
+	if (yt_page_load_check() == null || yt_page_load_check() == 100) {
+		const channel_page = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="channels"]');
+		if (channel_page) {
+			const sub_btn = channel_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+			const element = channel_page.querySelector("#meta > #channel-name > #container > #text-container > #text");
+			if (sub_btn && element) {
+				channel_mo.disconnect();
+				remove_star_btn();
+		
+				const channel_name = element.innerHTML;
+				(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+			}
+		}
 	}
 });
 
@@ -139,6 +143,16 @@ function force_mo_activation(element) {
 	}
 }
 
+function yt_page_load_check() {
+	const progress_element = document.querySelector("yt-page-navigation-progress");
+	if (!progress_element) { // top-level navigation
+		return null;
+	} else { // client-side routing navigation
+		const progress = Number.parseInt(progress_element.getAttribute("aria-valuenow"));
+		return progress;
+	}
+}
+
 async function add_favorite(channel_name) {
 	favorites.add(channel_name);
 	
@@ -195,13 +209,13 @@ function remove_star_btn(multiple=false) {
 
 function refresh_star_btn() {
 	if (location.href.startsWith("https://www.youtube.com/watch?")) {
-		watch_mo.observe(document.body, {
+		watch_mo.observe(document, {
 			attributes: true,
 			childList: true,
 			subtree: true
 		});
 	} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
-		channel_mo.observe(document.body, {
+		channel_mo.observe(document, {
 			attributes: true,
 			childList: true,
 			subtree: true
@@ -209,7 +223,7 @@ function refresh_star_btn() {
 	} else if (location.href == "https://www.youtube.com/feed/channels") {
 		remove_star_btn(multiple=true);
 
-		manage_mo.observe(document.body, {
+		manage_mo.observe(document, {
 			attributes: true,
 			childList: true,
 			subtree: true
@@ -288,7 +302,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			if (location.href.startsWith("https://www.youtube.com/watch?")) {
 				console.log("watch");
 
-				watch_mo.observe(document.body, {
+				watch_mo.observe(document, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -296,7 +310,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
 				console.log("channel");
 
-				channel_mo.observe(document.body, {
+				channel_mo.observe(document, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -304,7 +318,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			} else if (location.href == "https://www.youtube.com/feed/channels") {
 				console.log("manage");
 
-				manage_mo.observe(document.body, {
+				manage_mo.observe(document, {
 					attributes: true,
 					childList: true,
 					subtree: true
@@ -312,7 +326,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			} else if (location.href.startsWith("https://www.youtube.com/feed/subscriptions")) {
 				console.log("feed");
 
-				feed_mo.observe(document.body, {
+				feed_mo.observe(document, {
 					attributes: true,
 					childList: true,
 					subtree: true
