@@ -12,35 +12,31 @@ const theme = (document.querySelector("html").getAttribute("dark") == "true" ? "
 const debounce_timeout = 50; // ms
 
 const watch_mo = new MutationObserver((mutations) => {
-	if (yt_page_load_check() == null || yt_page_load_check() == 100) {
-		const watch_page = document.querySelector('ytd-page-manager > ytd-watch-flexy[role="main"][video-id]');
-		if (watch_page) {
-			const sub_btn = watch_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-			const element = watch_page.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a");
-			if (sub_btn && element) {
-				watch_mo.disconnect();
-				remove_star_btn();
-		
-				const channel_name = element.innerHTML;
-				(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
-			}
-		}	
+	const watch_page = document.querySelector('ytd-page-manager > ytd-watch-flexy[role="main"][video-id]');
+	if (watch_page) {
+		const sub_btn = watch_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+		const element = watch_page.querySelector("#meta > #meta-contents > ytd-video-secondary-info-renderer > #container > #top-row > ytd-video-owner-renderer > #upload-info > #channel-name > #container > #text-container > #text > a");
+		if (sub_btn && element) {
+			watch_mo.disconnect();
+			remove_star_btn();
+	
+			const channel_name = element.innerHTML;
+			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
+		}
 	}
 });
 
 const channel_mo = new MutationObserver((mutations) => {
-	if (yt_page_load_check() == null || yt_page_load_check() == 100) {
-		const channel_page = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="channels"]');
-		if (channel_page) {
-			const sub_btn = channel_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
-			const element = channel_page.querySelector("#meta > #channel-name > #container > #text-container > #text");
-			if (sub_btn && element) {
-				channel_mo.disconnect();
-				remove_star_btn();
-		
-				const channel_name = element.innerHTML;
-				(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
-			}
+	const channel_page = document.querySelector('ytd-page-manager > ytd-browse[role="main"][page-subtype="channels"]');
+	if (channel_page) {
+		const sub_btn = channel_page.querySelector("#subscribe-button > ytd-subscribe-button-renderer > tp-yt-paper-button");
+		const element = channel_page.querySelector("#meta > #channel-name > #container > #text-container > #text");
+		if (sub_btn && element) {
+			channel_mo.disconnect();
+			remove_star_btn();
+	
+			const channel_name = element.innerHTML;
+			(sub_btn.hasAttribute("subscribed") ? add_star_btn(channel_name, sub_btn) : null);
 		}
 	}
 });
@@ -140,16 +136,6 @@ function force_mo_activation(element) {
 		_.remove();
 	} catch (err) {
 		(err.message == "Failed to execute 'append' on 'Document': Only one element on document allowed." ? null : console.error(err));
-	}
-}
-
-function yt_page_load_check() {
-	const progress_element = document.querySelector("yt-page-navigation-progress");
-	if (!progress_element) { // top-level navigation
-		return null;
-	} else { // client-side routing navigation
-		const progress = Number.parseInt(progress_element.getAttribute("aria-valuenow"));
-		return progress;
 	}
 }
 
@@ -299,39 +285,52 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
 			manage_contents_mo.disconnect();
 			feed_contents_mo.disconnect();
 
-			if (location.href.startsWith("https://www.youtube.com/watch?")) {
-				console.log("watch");
-
-				watch_mo.observe(document, {
-					attributes: true,
-					childList: true,
-					subtree: true
-				});
-			} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
-				console.log("channel");
-
-				channel_mo.observe(document, {
-					attributes: true,
-					childList: true,
-					subtree: true
-				});
-			} else if (location.href == "https://www.youtube.com/feed/channels") {
-				console.log("manage");
-
-				manage_mo.observe(document, {
-					attributes: true,
-					childList: true,
-					subtree: true
-				});
-			} else if (location.href.startsWith("https://www.youtube.com/feed/subscriptions")) {
-				console.log("feed");
-
-				feed_mo.observe(document, {
-					attributes: true,
-					childList: true,
-					subtree: true
-				});
-			}
+			const yt_page_load_mo = new MutationObserver((mutations) => {
+				const progress_element = document.querySelector("yt-page-navigation-progress");
+				const progress = (progress_element ? Number.parseInt(progress_element.getAttribute("aria-valuenow")) : null);
+				if (!progress_element || progress == 100) { // (top-level navigation) or (client-side routing navigation fully loaded), respectively
+					yt_page_load_mo.disconnect();
+					
+					if (location.href.startsWith("https://www.youtube.com/watch?")) {
+						console.log("watch");
+		
+						watch_mo.observe(document, {
+							attributes: true,
+							childList: true,
+							subtree: true
+						});
+					} else if (location.href.startsWith("https://www.youtube.com/channel/") || location.href.startsWith("https://www.youtube.com/c/") || location.href.startsWith("https://www.youtube.com/user/")) {
+						console.log("channel");
+		
+						channel_mo.observe(document, {
+							attributes: true,
+							childList: true,
+							subtree: true
+						});
+					} else if (location.href == "https://www.youtube.com/feed/channels") {
+						console.log("manage");
+		
+						manage_mo.observe(document, {
+							attributes: true,
+							childList: true,
+							subtree: true
+						});
+					} else if (location.href.startsWith("https://www.youtube.com/feed/subscriptions")) {
+						console.log("feed");
+		
+						feed_mo.observe(document, {
+							attributes: true,
+							childList: true,
+							subtree: true
+						});
+					}
+				}
+			});
+			yt_page_load_mo.observe(document, {
+				attributes: true,
+				childList: true,
+				subtree: true
+			});
 
 			break;
 		case "favorites updated":
