@@ -316,7 +316,7 @@ async function main() {
 				const yt_page_load_mo = new MutationObserver((mutations) => {
 					const progress_element = document.querySelector("yt-page-navigation-progress");
 					const progress = (progress_element ? Number.parseInt(progress_element.getAttribute("aria-valuenow")) : null);
-					if (!progress_element || progress == 100) { // (top-level navigation) or (client-side routing navigation fully loaded), respectively
+					if (progress == 100) {
 						yt_page_load_mo.disconnect();
 						
 						if (window.location.href.startsWith("https://www.youtube.com/watch?")) {
@@ -393,6 +393,11 @@ async function main() {
 			});
 		}
 	});
+
+	chrome.runtime.sendMessage({
+		subject: "trigger navigation",
+		content: window.location.href
+	}).catch((err) => null);
 }
 
 main().catch((err) => console.error(err));

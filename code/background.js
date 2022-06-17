@@ -1,18 +1,24 @@
 console.log("background");
 
-function handle_navigation(details) {
-	if (details.frameId == 0 && details.url.startsWith("https://www.youtube.com")) {
-		chrome.tabs.sendMessage(details.tabId, {
-			subject: "navigation",
-			content: details.url
-		}).catch((err) => null);
-	}
-}
-
 function main() {
+	chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+		if (details.frameId == 0 && details.url.startsWith("https://www.youtube.com")) {
+			chrome.tabs.sendMessage(details.tabId, {
+				subject: "navigation",
+				content: details.url
+			}).catch((err) => null);
+		}
+	});
+	
 	chrome.runtime.onMessage.addListener(async (msg, sender) => {
 		console.log(msg);
 		switch (msg.subject) {
+			case "trigger navigation":
+				chrome.tabs.sendMessage(sender.tab.id, {
+					subject: "navigation",
+					content: msg.content
+				}).catch((err) => null);
+				break;
 			case "favorites updated":
 				try {
 					const active_window = await chrome.windows.getLastFocused();
@@ -34,14 +40,6 @@ function main() {
 			default:
 				break;
 		}
-	});
-	
-	chrome.webNavigation.onCompleted.addListener((details) => {
-		handle_navigation(details);
-	});
-	
-	chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
-		handle_navigation(details);
 	});
 }
 
