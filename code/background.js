@@ -9,36 +9,40 @@ function handle_navigation(details) {
 	}
 }
 
-chrome.runtime.onMessage.addListener(async (msg, sender) => {
-	console.log(msg);
-	switch (msg.subject) {
-		case "favorites updated":
-			try {
-				const active_window = await chrome.windows.getLastFocused();
-				const yt_tabs = await chrome.tabs.query({
-					url: "https://www.youtube.com/*"
-				});
-				for (const tab of yt_tabs) {
-					if (!(tab.windowId == active_window.id && tab.active)) {
-						chrome.tabs.sendMessage(tab.id, {
-							subject: "favorites updated",
-							content: msg.content
-						}).catch((err) => null);
+function main() {
+	chrome.runtime.onMessage.addListener(async (msg, sender) => {
+		console.log(msg);
+		switch (msg.subject) {
+			case "favorites updated":
+				try {
+					const active_window = await chrome.windows.getLastFocused();
+					const yt_tabs = await chrome.tabs.query({
+						url: "https://www.youtube.com/*"
+					});
+					for (const tab of yt_tabs) {
+						if (!(tab.windowId == active_window.id && tab.active)) {
+							chrome.tabs.sendMessage(tab.id, {
+								subject: "favorites updated",
+								content: msg.content
+							}).catch((err) => null);
+						}
 					}
+				} catch (err) {
+					console.error(err);
 				}
-			} catch (err) {
-				console.error(err);
-			}
-			break;
-		default:
-			break;
-	}
-});
+				break;
+			default:
+				break;
+		}
+	});
+	
+	chrome.webNavigation.onCompleted.addListener((details) => {
+		handle_navigation(details);
+	});
+	
+	chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+		handle_navigation(details);
+	});
+}
 
-chrome.webNavigation.onCompleted.addListener((details) => {
-	handle_navigation(details);
-});
-
-chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
-	handle_navigation(details);
-});
+main();
