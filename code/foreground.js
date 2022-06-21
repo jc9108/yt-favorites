@@ -66,7 +66,7 @@ const manage_mo = new MutationObserver((mutations) => {
 	if (manage_contents) {
 		manage_mo.disconnect();
 		manage_contents_mo.observe(manage_contents, {
-			attributes: true,
+			attributes: false,
 			childList: true,
 			subtree: true
 		});
@@ -152,7 +152,7 @@ async function get_sign_in_status() {
 			}
 		});
 		sign_in_status_mo.observe(document.body, {
-			attributes: true,
+			attributes: false,
 			childList: true,
 			subtree: true
 		});
@@ -216,13 +216,13 @@ function remove_star_btn(multiple=false) {
 function refresh_star_btn() {
 	if (window.location.href.startsWith("https://www.youtube.com/watch?")) {
 		watch_mo.observe(document.body, {
-			attributes: true,
+			attributes: false,
 			childList: true,
 			subtree: true
 		});
 	} else if (window.location.href.startsWith("https://www.youtube.com/channel/") || window.location.href.startsWith("https://www.youtube.com/c/") || window.location.href.startsWith("https://www.youtube.com/user/")) {
 		channel_mo.observe(document.body, {
-			attributes: true,
+			attributes: false,
 			childList: true,
 			subtree: true
 		});
@@ -230,7 +230,7 @@ function refresh_star_btn() {
 		remove_star_btn(multiple=true);
 
 		manage_mo.observe(document.body, {
-			attributes: true,
+			attributes: false,
 			childList: true,
 			subtree: true
 		});
@@ -250,7 +250,7 @@ function add_filter_btn() {
 				evt.target.innerHTML = `★ ${filter_btn_state} ★`;
 				
 				feed_contents_mo.observe(feed_contents, {
-					attributes: true,
+					attributes: false,
 					childList: true,
 					subtree: true
 				});
@@ -316,14 +316,14 @@ async function main() {
 				const yt_page_load_mo = new MutationObserver((mutations) => {
 					const progress_element = document.querySelector("yt-page-navigation-progress");
 					const progress = (progress_element ? Number.parseInt(progress_element.getAttribute("aria-valuenow")) : null);
-					if (progress == 100) {
+					if (!progress_element || progress == 100) {
 						yt_page_load_mo.disconnect();
 						
 						if (window.location.href.startsWith("https://www.youtube.com/watch?")) {
 							console.log("watch");
 			
 							watch_mo.observe(document.body, {
-								attributes: true,
+								attributes: false,
 								childList: true,
 								subtree: true
 							});
@@ -331,7 +331,7 @@ async function main() {
 							console.log("channel");
 			
 							channel_mo.observe(document.body, {
-								attributes: true,
+								attributes: false,
 								childList: true,
 								subtree: true
 							});
@@ -339,7 +339,7 @@ async function main() {
 							console.log("manage");
 			
 							manage_mo.observe(document.body, {
-								attributes: true,
+								attributes: false,
 								childList: true,
 								subtree: true
 							});
@@ -347,7 +347,7 @@ async function main() {
 							console.log("feed");
 			
 							feed_mo.observe(document.body, {
-								attributes: true,
+								attributes: false,
 								childList: true,
 								subtree: true
 							});

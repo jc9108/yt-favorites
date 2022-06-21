@@ -3,7 +3,7 @@
 	"name": "yt-favorites",
 	"description": "enables favorites on YouTube",
 	"homepage_url": "https://github.com/jc9108/yt-favorites",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"manifest_version": 3,
 	"icons": {
 		"16": "./images/icon_16.png",
